@@ -1,8 +1,10 @@
 package com.evolution.tetris.service
 
+import com.evolution.tetris.db.{Database, Player}
 import com.evolution.tetris.game.Figure
 import javafx.scene.shape.Rectangle
 import scalafx.application.Platform
+import scalafx.beans.property.{ObjectProperty, StringProperty}
 import scalafx.scene.Group
 import scalafx.scene.Group.sfxGroup2jfx
 import scalafx.scene.paint.Color
@@ -11,11 +13,13 @@ import scalafx.scene.paint.Color.Red
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Random
 
-final class ServiceFunctions {
+final case class ServiceFunctions (playerName: String) {
 
 
   val presetsObject = new Presets()
   val scoreObject = new Score(presetsObject)
+
+
 
   val tetrisSceneBooleanMatrixArrayBuffer: ArrayBuffer[ArrayBuffer[Boolean]] = ArrayBuffer.fill[Boolean](presetsObject.sceneHeight, presetsObject.sceneWidth)(false)
   val fallenFiguresListBuffer = ListBuffer[Figure]()
@@ -131,7 +135,18 @@ final class ServiceFunctions {
     }
   }
 
-  def resetGame(): Unit = {
+  def resetGame(score: Int): Unit = {
+    Database.setupDB()
+
+    val player =  new Player(StringProperty(playerName),ObjectProperty(score))
+
+    player.save()
+
+    Player.playerData ++= Player.allPlayers.sortWith((x,y) => x.score.value > y.score.value)
+
+    Player.playerData.foreach(player =>
+      println(player.id.value+"<<<<<<<"+player.playerName.value+" >>>>>>  "+ player.score.value))
+
     fallenFiguresListBuffer.clear()
     tetrisSceneBooleanMatrixArrayBuffer.clear()
     tetrisSceneBooleanMatrixArrayBuffer.addAll(ArrayBuffer.fill[Boolean](presetsObject.sceneHeight, presetsObject.sceneWidth)(false))
@@ -139,6 +154,15 @@ final class ServiceFunctions {
     presetsObject.presetsArrayOfPauseAndFiguresChoiceAndBreakThruAbilityAndBonusType(1) = "false"
     presetsObject.presetsArrayOfPauseAndFiguresChoiceAndBreakThruAbilityAndBonusType(2) = "false"
     presetsObject.presetsArrayOfPauseAndFiguresChoiceAndBreakThruAbilityAndBonusType(3) = "no bonus"
+
+
+
+
+
+
+
+
+
   }
 
   def canCurrentFigureGoDownCheckAndMoveTheFigureAtOnePositionDownIfTrue: Boolean = {
@@ -165,9 +189,12 @@ final class ServiceFunctions {
       else {
         if (currentFigureContainingArrayBuffer(0).verticalPosition <= 0) {
           println(s"SCORE : ${scoreObject.score.get()}")
+          val score = scoreObject.score.value
           scoreObject.bonusScore.set(0)
           scoreObject.score.set(0)
-          resetGame() //GAME is OVER
+          resetGame(score) //GAME is OVER
+
+
         }
         else if (presetsObject.presetsArrayOfPauseAndFiguresChoiceAndBreakThruAbilityAndBonusType(2).toBoolean) {
           currentFigureContainingArrayBuffer(0) = currentFigureContainingArrayBuffer(0).moveFigureDown()

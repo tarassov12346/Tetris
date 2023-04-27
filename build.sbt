@@ -19,3 +19,15 @@ lazy val root = (project in file("."))
   .settings(
     name := "ProjectTetris"
   )
+
+
+// https://mvnrepository.com/artifact/org.apache.derby/derby
+libraryDependencies += "org.apache.derby" % "derby" % "10.15.2.0"
+
+libraryDependencies ++= Seq(
+  "org.scalikejdbc" %% "scalikejdbc"       % "4.0.0",
+  "com.h2database"  %  "h2"                % "2.1.214",
+  "ch.qos.logback"  %  "logback-classic"   % "1.4.6"
+)
+
+fork := true
